@@ -1,39 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Banner Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        a {
-            display: inline-block;
-            text-decoration: none;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin: 10px;
-            font-size: 18px;
-            transition: background-color 0.3s;
-        }
-        a:hover {
-            background-color: #0056b3;
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>Visibility & Focus Test</title>
+<style>
+  body {
+    font-family: monospace;
+    background: #111;
+    color: #eee;
+    padding: 20px;
+  }
+  #log {
+    border: 1px solid #444;
+    padding: 10px;
+    height: 60vh;
+    overflow-y: auto;
+    background: #000;
+  }
+  .event {
+    margin-bottom: 6px;
+  }
+  .hidden { color: #f77; }
+  .focus { color: #7f7; }
+  .blur { color: #ff7; }
+  .mouse { color: #7af; }
+</style>
 </head>
 <body>
+  <h2>🧠 Visibility & Focus Event Logger</h2>
+  <p>Try switching tabs, minimizing, or moving the mouse away.</p>
+  <div id="log"></div>
 
-    <h2>Testing Smart Banner</h2>
+  <script>
+    const logBox = document.getElementById('log');
 
-    <a href="./youtube.html">📺 Open YouTube</a>
-    <a href="./sixt.html">🚗 Open Sixt</a>
-    <a href="./sixt2.html">🚗 Open Sixt (experimenting with meta)</a>
+    function log(msg, cls = '') {
+      const div = document.createElement('div');
+      div.className = `event ${cls}`;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+      console.log(msg);
+    }
 
+    // Page Visibility API
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        log('document.hidden = true (tab not visible)', 'hidden');
+      } else {
+        log('document.hidden = false (tab visible again)', 'focus');
+      }
+    });
 
+    // Focus/Blur on window
+    window.addEventListener('focus', () => log('window focus', 'focus'));
+    window.addEventListener('blur', () => log('window blur', 'blur'));
+
+    // Mouse leaves window (good for detecting intent to close or switch)
+    window.addEventListener('mouseout', e => {
+      if (!e.relatedTarget && !e.toElement) {
+        log('mouse left window → possible tab switch or close', 'mouse');
+      }
+    });
+
+    // Mouse reenters window
+    window.addEventListener('mouseover', e => {
+      if (!e.relatedTarget && !e.fromElement) {
+        log('mouse reentered window', 'mouse');
+      }
+    });
+
+    // Before unload (user tries to close or refresh tab)
+    window.addEventListener('beforeunload', e => {
+      log('⚠️ beforeunload event fired (tab close/refresh attempt)', 'hidden');
+      // Uncomment to test confirmation dialog (not all browsers show it now)
+      // e.preventDefault();
+      // e.returnValue = '';
+    });
+
+    log('Logger initialized. Waiting for events...');
+  </script>
 </body>
 </html>
