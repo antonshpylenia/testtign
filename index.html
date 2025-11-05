@@ -10,6 +10,21 @@
     color: #eee;
     padding: 20px;
   }
+  #toolbar {
+    margin-bottom: 10px;
+  }
+  button {
+    background: #333;
+    color: #fff;
+    border: 1px solid #666;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover {
+    background: #444;
+  }
   #log {
     border: 1px solid #444;
     padding: 10px;
@@ -28,11 +43,14 @@
 </head>
 <body>
   <h2>🧠 Visibility & Focus Event Logger</h2>
-  <p>Try switching tabs, minimizing, or moving the mouse away.</p>
+  <div id="toolbar">
+    <button id="clearLogs">🧹 Clear Logs</button>
+  </div>
   <div id="log"></div>
 
   <script>
     const logBox = document.getElementById('log');
+    const clearBtn = document.getElementById('clearLogs');
 
     function log(msg, cls = '') {
       const div = document.createElement('div');
@@ -42,6 +60,12 @@
       logBox.scrollTop = logBox.scrollHeight;
       console.log(msg);
     }
+
+    // Clear log button
+    clearBtn.addEventListener('click', () => {
+      logBox.innerHTML = '';
+      log('🧹 Logs cleared');
+    });
 
     // Page Visibility API
     document.addEventListener('visibilitychange', () => {
@@ -73,7 +97,7 @@
     // Before unload (user tries to close or refresh tab)
     window.addEventListener('beforeunload', e => {
       log('⚠️ beforeunload event fired (tab close/refresh attempt)', 'hidden');
-      // Uncomment to test confirmation dialog (not all browsers show it now)
+      // Uncomment to test confirmation dialog (some browsers ignore it)
       // e.preventDefault();
       // e.returnValue = '';
     });
