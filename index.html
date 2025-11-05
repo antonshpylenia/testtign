@@ -32,13 +32,12 @@
     overflow-y: auto;
     background: #000;
   }
-  .event {
-    margin-bottom: 6px;
-  }
+  .event { margin-bottom: 6px; }
   .hidden { color: #f77; }
   .focus { color: #7f7; }
   .blur { color: #ff7; }
   .mouse { color: #7af; }
+  .idle { color: #aaa; }
 </style>
 </head>
 <body>
@@ -61,48 +60,70 @@
       console.log(msg);
     }
 
-    // Clear log button
+    // Clear logs
     clearBtn.addEventListener('click', () => {
       logBox.innerHTML = '';
       log('🧹 Logs cleared');
     });
 
-    // Page Visibility API
+    // --- Visibility & focus ---
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         log('document.hidden = true (tab not visible)', 'hidden');
       } else {
         log('document.hidden = false (tab visible again)', 'focus');
+        resetIdleTimer();
       }
     });
 
-    // Focus/Blur on window
-    window.addEventListener('focus', () => log('window focus', 'focus'));
+    window.addEventListener('focus', () => {
+      log('window focus', 'focus');
+      resetIdleTimer();
+    });
+
     window.addEventListener('blur', () => log('window blur', 'blur'));
 
-    // Mouse leaves window (good for detecting intent to close or switch)
+    // --- Mouse leave/enter window ---
     window.addEventListener('mouseout', e => {
       if (!e.relatedTarget && !e.toElement) {
         log('mouse left window → possible tab switch or close', 'mouse');
       }
     });
 
-    // Mouse reenters window
     window.addEventListener('mouseover', e => {
       if (!e.relatedTarget && !e.fromElement) {
         log('mouse reentered window', 'mouse');
+        resetIdleTimer();
       }
     });
 
-    // Before unload (user tries to close or refresh tab)
+    // --- Before unload ---
     window.addEventListener('beforeunload', e => {
       log('⚠️ beforeunload event fired (tab close/refresh attempt)', 'hidden');
-      // Uncomment to test confirmation dialog (some browsers ignore it)
-      // e.preventDefault();
-      // e.returnValue = '';
+      // e.preventDefault(); e.returnValue = ''; // Uncomment for dialog (deprecated)
     });
 
+    // --- Idle detection ---
+    let idleTimer = null;
+    const IDLE_TIMEOUT = 10_000; // 10 seconds
+    const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      if (!document.hidden && document.hasFocus()) {
+        idleTimer = setTimeout(() => {
+          log('🕐 idle timeout reached (no activity for 10s)', 'idle');
+        }, IDLE_TIMEOUT);
+      }
+    }
+
+    activityEvents.forEach(ev =>
+      window.addEventListener(ev, resetIdleTimer, { passive: true })
+    );
+
+    // initialize
     log('Logger initialized. Waiting for events...');
+    resetIdleTimer();
   </script>
 </body>
 </html>
